@@ -5,6 +5,7 @@ local M = {
   errBuf = nil,
   splitCmd = 'sp ',
   splitSBCmd = 'to ',
+  showing = false,
 }
 
 M.Show = function()
@@ -33,6 +34,16 @@ M.setup = function(opts)
       assert(type(verticalSplit) == "boolean", "verticalSplit must be boolean or nil")
       M.splitCmd = verticalSplit and 'vsp ' or 'sp '
       M.splitSBCmd = verticalSplit and 'vert ' or 'to '
+  end
+end
+
+M.ToggleCoverage = function ()
+  if M.showing then
+    local fullPathFile = string.gsub(vim.api.nvim_buf_get_name(0), "_test", "")
+    local bufnr = vim.uri_to_bufnr("file://" .. fullPathFile)
+    M.ClearCoverage(bufnr)
+  else
+    M.Coverage()
   end
 end
 
@@ -143,6 +154,7 @@ M.Coverage = function(fn, html)
         vim.cmd(M.splitSBCmd .. " sb " .. M.errBuf)
       end
     end
+    M.showing = true
   end))
 
   local writeToScratch = function(err, data)
@@ -181,6 +193,7 @@ M.CoverageFunc = function(p, html)
 end
 
 M.ClearCoverage = function(bufnr)
+  M.showing = false
   vim.api.nvim_buf_clear_namespace(bufnr or 0, M.hi, 0, -1)
 end
 
